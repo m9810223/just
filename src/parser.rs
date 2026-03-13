@@ -1334,6 +1334,7 @@ impl<'run, 'src> Parser<'run, 'src> {
       Keyword::DotenvRequired => Some(Setting::DotenvRequired(self.parse_set_bool()?)),
       Keyword::Export => Some(Setting::Export(self.parse_set_bool()?)),
       Keyword::Fallback => Some(Setting::Fallback(self.parse_set_bool()?)),
+      Keyword::ForwardOverrides => Some(Setting::ForwardOverrides(self.parse_set_bool()?)),
       Keyword::Guards => Some(Setting::Guards(self.parse_set_bool()?)),
       Keyword::IgnoreComments => Some(Setting::IgnoreComments(self.parse_set_bool()?)),
       Keyword::NoExitMessage => Some(Setting::NoExitMessage(self.parse_set_bool()?)),

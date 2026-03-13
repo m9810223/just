@@ -51,6 +51,7 @@ _just() {
 '(-q --quiet)-n[Print what just would do without doing it]' \
 '(-q --quiet)--dry-run[Print what just would do without doing it]' \
 '--explain[Print recipe doc comment before running it]' \
+'--forward-overrides[Forward variable overrides to child \`just\` invocations via environment]' \
 '(-f --justfile -d --working-directory)-g[Use global justfile]' \
 '(-f --justfile -d --working-directory)--global-justfile[Use global justfile]' \
 '--highlight[Highlight echoed recipe lines in bold]' \

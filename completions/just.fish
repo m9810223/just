@@ -57,6 +57,7 @@ complete -c just -l check -d 'Run `--fmt` in \'check\' mode. Exits with 0 if jus
 complete -c just -l clear-shell-args -d 'Clear shell arguments'
 complete -c just -s n -l dry-run -d 'Print what just would do without doing it'
 complete -c just -l explain -d 'Print recipe doc comment before running it'
+complete -c just -l forward-overrides -d 'Forward variable overrides to child `just` invocations via environment'
 complete -c just -s g -l global-justfile -d 'Use global justfile'
 complete -c just -l highlight -d 'Highlight echoed recipe lines in bold'
 complete -c just -l list-submodules -d 'List recipes in submodules'

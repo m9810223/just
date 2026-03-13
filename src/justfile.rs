@@ -174,6 +174,16 @@ impl<'src> Justfile<'src> {
 
         command.export(&self.settings, &dotenv, &scope, &self.unexports);
 
+        if !config.overrides.is_empty() && (config.forward_overrides || self.settings.forward_overrides) {
+          let serialized = config
+            .overrides
+            .iter()
+            .map(|(k, v)| format!("{k}={v}"))
+            .collect::<Vec<_>>()
+            .join("\x1F");
+          command.env("JUST_OVERRIDES", serialized);
+        }
+
         let (result, caught) = command.status_guard();
 
         let status = result.map_err(|io_error| Error::CommandInvoke {

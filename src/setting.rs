@@ -11,6 +11,7 @@ pub(crate) enum Setting<'src> {
   DotenvRequired(bool),
   Export(bool),
   Fallback(bool),
+  ForwardOverrides(bool),
   Guards(bool),
   IgnoreComments(bool),
   NoExitMessage(bool),
@@ -59,6 +60,7 @@ impl Display for Setting<'_> {
       | Self::DotenvRequired(value)
       | Self::Export(value)
       | Self::Fallback(value)
+      | Self::ForwardOverrides(value)
       | Self::Guards(value)
       | Self::IgnoreComments(value)
       | Self::NoExitMessage(value)

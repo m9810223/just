@@ -56,6 +56,7 @@ Register-ArgumentCompleter -Native -CommandName 'just' -ScriptBlock {
             [CompletionResult]::new('-n', '-n', [CompletionResultType]::ParameterName, 'Print what just would do without doing it')
             [CompletionResult]::new('--dry-run', '--dry-run', [CompletionResultType]::ParameterName, 'Print what just would do without doing it')
             [CompletionResult]::new('--explain', '--explain', [CompletionResultType]::ParameterName, 'Print recipe doc comment before running it')
+            [CompletionResult]::new('--forward-overrides', '--forward-overrides', [CompletionResultType]::ParameterName, 'Forward variable overrides to child `just` invocations via environment')
             [CompletionResult]::new('-g', '-g', [CompletionResultType]::ParameterName, 'Use global justfile')
             [CompletionResult]::new('--global-justfile', '--global-justfile', [CompletionResultType]::ParameterName, 'Use global justfile')
             [CompletionResult]::new('--highlight', '--highlight', [CompletionResultType]::ParameterName, 'Highlight echoed recipe lines in bold')

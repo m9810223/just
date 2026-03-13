@@ -89,6 +89,7 @@ struct Settings<'a> {
   dotenv_required: bool,
   export: bool,
   fallback: bool,
+  forward_overrides: bool,
   guards: bool,
   ignore_comments: bool,
   no_exit_message: bool,

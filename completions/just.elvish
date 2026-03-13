@@ -53,6 +53,7 @@ set edit:completion:arg-completer[just] = {|@words|
             cand -n 'Print what just would do without doing it'
             cand --dry-run 'Print what just would do without doing it'
             cand --explain 'Print recipe doc comment before running it'
+            cand --forward-overrides 'Forward variable overrides to child `just` invocations via environment'
             cand -g 'Use global justfile'
             cand --global-justfile 'Use global justfile'
             cand --highlight 'Highlight echoed recipe lines in bold'

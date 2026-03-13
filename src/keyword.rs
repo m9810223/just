@@ -17,6 +17,7 @@ pub(crate) enum Keyword {
   F,
   Fallback,
   False,
+  ForwardOverrides,
   Guards,
   If,
   IgnoreComments,

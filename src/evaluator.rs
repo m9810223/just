@@ -103,6 +103,9 @@ impl<'src, 'run> Evaluator<'src, 'run> {
         Setting::Fallback(value) => {
           settings.fallback = value;
         }
+        Setting::ForwardOverrides(value) => {
+          settings.forward_overrides = value;
+        }
         Setting::Guards(guards) => {
           settings.guards = guards;
         }

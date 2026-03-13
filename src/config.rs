@@ -24,6 +24,7 @@ pub(crate) struct Config {
   pub(crate) dry_run: bool,
   pub(crate) dump_format: DumpFormat,
   pub(crate) explain: bool,
+  pub(crate) forward_overrides: bool,
   pub(crate) groups: Vec<String>,
   pub(crate) highlight: bool,
   pub(crate) invocation_directory: PathBuf,
@@ -108,6 +109,7 @@ mod arg {
   pub(crate) const DRY_RUN: &str = "DRY-RUN";
   pub(crate) const DUMP_FORMAT: &str = "DUMP-FORMAT";
   pub(crate) const EXPLAIN: &str = "EXPLAIN";
+  pub(crate) const FORWARD_OVERRIDES: &str = "FORWARD-OVERRIDES";
   pub(crate) const GLOBAL_JUSTFILE: &str = "GLOBAL-JUSTFILE";
   pub(crate) const HIGHLIGHT: &str = "HIGHLIGHT";
   pub(crate) const JUSTFILE: &str = "JUSTFILE";
@@ -265,6 +267,13 @@ impl Config {
           .long("explain")
           .env("JUST_EXPLAIN")
           .help("Print recipe doc comment before running it"),
+      )
+      .arg(
+        Arg::new(arg::FORWARD_OVERRIDES)
+          .action(ArgAction::SetTrue)
+          .long("forward-overrides")
+          .env("JUST_FORWARD_OVERRIDES")
+          .help("Forward variable overrides to child `just` invocations via environment"),
       )
       .arg(
         Arg::new(arg::GLOBAL_JUSTFILE)
@@ -711,6 +720,18 @@ impl Config {
       overrides.insert(name.clone(), value.clone());
     }
 
+    // Read overrides forwarded from parent just invocations (opt-in via --forward-overrides)
+    if matches.get_flag(arg::FORWARD_OVERRIDES) {
+      if let Ok(env_overrides) = env::var("JUST_OVERRIDES") {
+        for entry in env_overrides.split('\x1F') {
+          if let Some((key, value)) = entry.split_once('=') {
+            // CLI overrides take priority over env var overrides
+            overrides.entry(key.to_owned()).or_insert_with(|| value.to_owned());
+          }
+        }
+      }
+    }
+
     let search_config = Self::search_config(matches, &positional)?;
 
     for subcommand in cmd::ARGLESS {
@@ -835,6 +856,7 @@ impl Config {
         .unwrap()
         .clone(),
       explain,
+      forward_overrides: matches.get_flag(arg::FORWARD_OVERRIDES),
       highlight: !matches.get_flag(arg::NO_HIGHLIGHT),
       invocation_directory: env::current_dir().context(config_error::CurrentDirContext)?,
       groups: matches
@@ -905,6 +927,7 @@ mod tests {
       $(color: $color:expr,)?
       $(dry_run: $dry_run:expr,)?
       $(dump_format: $dump_format:expr,)?
+      $(forward_overrides: $forward_overrides:expr,)?
       $(highlight: $highlight:expr,)?
       $(no_dependencies: $no_dependencies:expr,)?
       $(overrides: $overrides:expr,)?
@@ -927,6 +950,7 @@ mod tests {
           $(color: $color,)?
           $(dry_run: $dry_run,)?
           $(dump_format: $dump_format,)?
+          $(forward_overrides: $forward_overrides,)?
           $(highlight: $highlight,)?
           $(no_dependencies: $no_dependencies,)?
           $(overrides: $overrides,)?
@@ -1763,5 +1787,92 @@ mod tests {
       assert_eq!(subcommand, cmd::SUMMARY);
       assert_eq!(overrides, map!{"bar": "baz"});
     },
+  }
+
+  test! {
+    name: forward_overrides_flag,
+    args: ["--forward-overrides"],
+    forward_overrides: true,
+    subcommand: Subcommand::Run {
+      arguments: Vec::new(),
+    },
+  }
+
+  test! {
+    name: forward_overrides_default,
+    args: [],
+    forward_overrides: false,
+    subcommand: Subcommand::Run {
+      arguments: Vec::new(),
+    },
+  }
+
+  #[test]
+  #[ignore = "env var tests must run single-threaded: cargo test --lib -- --test-threads=1 --ignored"]
+  fn forward_overrides_reads_just_overrides_env() {
+    // Must run with --test-threads=1 or in isolation due to env var mutation
+    unsafe {
+      env::set_var("JUST_OVERRIDES", "foo=bar\x1Fbaz=qux");
+      env::remove_var("JUST_FORWARD_OVERRIDES");
+    }
+
+    let app = Config::app();
+    let matches = app
+      .try_get_matches_from(["just", "--forward-overrides"])
+      .expect("argument parsing failed");
+    let config = Config::from_matches(&matches).expect("config parsing failed");
+
+    assert_eq!(config.overrides.get("foo").map(String::as_str), Some("bar"));
+    assert_eq!(config.overrides.get("baz").map(String::as_str), Some("qux"));
+    assert!(config.forward_overrides);
+
+    unsafe {
+      env::remove_var("JUST_OVERRIDES");
+    }
+  }
+
+  #[test]
+  #[ignore = "env var tests must run single-threaded: cargo test --lib -- --test-threads=1 --ignored"]
+  fn forward_overrides_cli_overrides_take_priority() {
+    unsafe {
+      env::set_var("JUST_OVERRIDES", "foo=from_env");
+      env::remove_var("JUST_FORWARD_OVERRIDES");
+    }
+
+    let app = Config::app();
+    let matches = app
+      .try_get_matches_from(["just", "--forward-overrides", "--set", "foo", "from_cli"])
+      .expect("argument parsing failed");
+    let config = Config::from_matches(&matches).expect("config parsing failed");
+
+    assert_eq!(
+      config.overrides.get("foo").map(String::as_str),
+      Some("from_cli"),
+    );
+
+    unsafe {
+      env::remove_var("JUST_OVERRIDES");
+    }
+  }
+
+  #[test]
+  #[ignore = "env var tests must run single-threaded: cargo test --lib -- --test-threads=1 --ignored"]
+  fn forward_overrides_env_ignored_without_flag() {
+    unsafe {
+      env::set_var("JUST_OVERRIDES", "foo=bar");
+      env::remove_var("JUST_FORWARD_OVERRIDES");
+    }
+
+    let app = Config::app();
+    let matches = app
+      .try_get_matches_from(["just"])
+      .expect("argument parsing failed");
+    let config = Config::from_matches(&matches).expect("config parsing failed");
+
+    assert_eq!(config.overrides.get("foo"), None);
+
+    unsafe {
+      env::remove_var("JUST_OVERRIDES");
+    }
   }
 }

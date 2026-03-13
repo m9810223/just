@@ -344,6 +344,18 @@ impl<'src, D> Recipe<'src, D> {
 
       cmd.export(settings, context.dotenv, scope, &context.module.unexports);
 
+      if !config.overrides.is_empty()
+        && (config.forward_overrides || context.module.settings.forward_overrides)
+      {
+        let serialized = config
+          .overrides
+          .iter()
+          .map(|(k, v)| format!("{k}={v}"))
+          .collect::<Vec<_>>()
+          .join("\x1F");
+        cmd.env("JUST_OVERRIDES", serialized);
+      }
+
       let (result, caught) = cmd.status_guard();
 
       match result {
@@ -511,6 +523,18 @@ impl<'src, D> Recipe<'src, D> {
       scope,
       &context.module.unexports,
     );
+
+    if !config.overrides.is_empty()
+      && (config.forward_overrides || context.module.settings.forward_overrides)
+    {
+      let serialized = config
+        .overrides
+        .iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<_>>()
+        .join("\x1F");
+      command.env("JUST_OVERRIDES", serialized);
+    }
 
     // run it!
     let (result, caught) = command.status_guard();

@@ -317,6 +317,7 @@ impl<'src> Node<'src> for Set<'src> {
       | Setting::DotenvRequired(value)
       | Setting::Export(value)
       | Setting::Fallback(value)
+      | Setting::ForwardOverrides(value)
       | Setting::Guards(value)
       | Setting::IgnoreComments(value)
       | Setting::NoExitMessage(value)
